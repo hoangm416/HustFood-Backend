@@ -19,7 +19,7 @@ const orderSchema = new mongoose.Schema({
   totalAmount: Number,
   status: {
     type: String,
-    enum: ["Đã đặt hàng", "Đã thanh toán", "Đang chuẩn bị", "Đang giao hàng", "Giao hàng thành công"],
+    enum: ["placed", "paid", "inProgress", "outForDelivery", "delivered"],
   },
   createdAt: { type: Date, default: Date.now },
 });

@@ -57,7 +57,7 @@ const createCheckoutSession = async (req: Request, res: Response) => {
     const newOrder = new Order({
       restaurant: restaurant._id,
       user: req.userId,
-      status: "Đã đặt hàng",
+      status: "placed",
       deliveryDetails: checkoutSessionRequest.deliveryDetails,
       cartItems: checkoutSessionRequest.cartItems,
       createdAt: new Date(),
@@ -108,7 +108,7 @@ const calculateTotalAmount = (
 const createMomoPaymentData = (orderId: string, amount: number) => {
   const requestId = `${orderId}-${Date.now()}`;
   const orderInfo = `Payment for order ${orderId}`;
-  const redirectUrl = `${FRONTEND_URL}/order-status?success=true`;
+  const redirectUrl = `${FRONTEND_URL}/order-status`;
   const ipnUrl = `${FRONTEND_URL}/momo-webhook`;
 
   const rawSignature = `accessKey=${MOMO_ACCESS_KEY}&amount=${amount}&extraData=&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${MOMO_PARTNER_CODE}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=captureWallet`;
@@ -150,7 +150,7 @@ const momoWebhookHandler = async (req: Request, res: Response) => {
         return;
       }
 
-      order.status = "Đã thanh toán";
+      order.status = "paid";
       await order.save();
       console.log(`Đơn hàng ${orderId} đã thanh toán thành công`);
     }

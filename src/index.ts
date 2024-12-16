@@ -7,6 +7,7 @@ import { v2 as cloudinary } from "cloudinary";
 import myRestaurantRoute from "./routes/MyRestaurantRoute";
 import restaurantRoute from "./routes/RestaurantRoutes";
 import orderRoute from "./routes/OrderRoute";
+import path from "path";
 
 mongoose
   .connect(process.env.MONGODB_CONNECTION_STRING as string)
@@ -19,6 +20,14 @@ mongoose
   });
 
 const app = express();
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, 'public')));
+
+// Redirect all routes to index.html
+app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 app.use(cors());
 

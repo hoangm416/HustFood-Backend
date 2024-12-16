@@ -110,7 +110,7 @@ const createMomoPaymentData = (orderId: string, amount: number) => {
   const requestId = `${orderId}-${Date.now()}`;
   const orderInfo = `Payment for order ${orderId}`;
   const redirectUrl = `${FRONTEND_URL}/order-status`;
-  const ipnUrl = `${BACKEND_URL}/api/v1/orders/checkout/webhook`;
+  const ipnUrl = `${BACKEND_URL}/api/order/checkout/webhook`;
 
   const rawSignature = `accessKey=${MOMO_ACCESS_KEY}&amount=${amount}&extraData=&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${MOMO_PARTNER_CODE}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=captureWallet`;
   const signature = generateSignature(rawSignature, MOMO_SECRET_KEY);
@@ -136,7 +136,11 @@ const generateSignature = (rawSignature: string, secretKey: string): string => {
 
 const momoWebhookHandler = async (req: Request, res: Response) => {
   try {
-    const { orderId, resultCode } = req.body;
+    // Parse raw body thành JSON nếu chưa parse
+    const rawBody = req.body.toString("utf-8");
+    const data = JSON.parse(rawBody);
+
+    const { orderId, resultCode } = data;
 
     if (!orderId) {
       res.status(400).json({ message: "Thiếu orderId trong dữ liệu webhook" });
@@ -144,22 +148,16 @@ const momoWebhookHandler = async (req: Request, res: Response) => {
     }
 
     if (resultCode === 0) {
-      const order = await Order.findById(orderId);
-
-      if (!order) {
-        res.status(404).json({ message: "Không thấy đơn hàng" });
-        return;
-      }
-
-      order.status = "paid";
-      await order.save();
-      console.log(`Đơn hàng ${orderId} đã thanh toán thành công`);
+      console.log(`Đơn hàng ${orderId} thanh toán thành công.`);
+      res.status(200).send("Webhook xử lý thành công.");
+    } else {
+      console.log(`Đơn hàng ${orderId} thanh toán thất bại.`);
+      res.status(200).send("Webhook xử lý thất bại.");
     }
-
-    res.status(200).send();
-  } catch (error) {
-    console.error("Lỗi xử lý MoMo webhook:", error);
-    res.status(500).json({ message: "Xử lý webhook thất bại" });
+  } 
+  catch (error) {
+    console.error("Lỗi xử lý webhook:", error);
+    res.status(500).json({ message: "Lỗi xử lý webhook" });
   }
 };
 

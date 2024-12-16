@@ -9,6 +9,7 @@ const MOMO_ACCESS_KEY = process.env.MOMO_ACCESS_KEY as string;
 const MOMO_SECRET_KEY = process.env.MOMO_SECRET_KEY as string;
 const MOMO_ENDPOINT = "https://test-payment.momo.vn/v2/gateway/api/create";
 const FRONTEND_URL = process.env.FRONTEND_URL as string;
+const BACKEND_URL = process.env.BACKEND_URL as string;
 
 const getMyOrders = async (req: Request, res: Response) => {
   try {
@@ -108,8 +109,8 @@ const calculateTotalAmount = (
 const createMomoPaymentData = (orderId: string, amount: number) => {
   const requestId = `${orderId}-${Date.now()}`;
   const orderInfo = `Payment for order ${orderId}`;
-  const redirectUrl = `${FRONTEND_URL}/order-status?orderId=${orderId}`;
-  const ipnUrl = `${FRONTEND_URL}/momo-webhook`;
+  const redirectUrl = `${FRONTEND_URL}/order-status`;
+  const ipnUrl = `${BACKEND_URL}/api/v1/orders/checkout/webhook`;
 
   const rawSignature = `accessKey=${MOMO_ACCESS_KEY}&amount=${amount}&extraData=&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${MOMO_PARTNER_CODE}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=captureWallet`;
   const signature = generateSignature(rawSignature, MOMO_SECRET_KEY);

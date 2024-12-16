@@ -15,4 +15,16 @@ router.post(
 
 router.post("/checkout/webhook", OrderController.momoWebhookHandler);
 
+router.get("/order-status", (req, res) => {
+  const { partnerCode, orderId, requestId } = req.query;
+
+  // Thêm logic xử lý khi nhận kết quả thanh toán thành công từ MOMO
+  res.status(200).send({
+    message: "Thanh toán thành công!",
+    partnerCode,
+    orderId,
+    requestId,
+  });
+});
+
 export default router;

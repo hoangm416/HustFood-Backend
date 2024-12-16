@@ -108,7 +108,7 @@ const calculateTotalAmount = (
 const createMomoPaymentData = (orderId: string, amount: number) => {
   const requestId = `${orderId}-${Date.now()}`;
   const orderInfo = `Payment for order ${orderId}`;
-  const redirectUrl = `${FRONTEND_URL}/order-status`;
+  const redirectUrl = `${FRONTEND_URL}/order-status?orderId=${orderId}`;
   const ipnUrl = `${FRONTEND_URL}/momo-webhook`;
 
   const rawSignature = `accessKey=${MOMO_ACCESS_KEY}&amount=${amount}&extraData=&ipnUrl=${ipnUrl}&orderId=${orderId}&orderInfo=${orderInfo}&partnerCode=${MOMO_PARTNER_CODE}&redirectUrl=${redirectUrl}&requestId=${requestId}&requestType=captureWallet`;
@@ -162,8 +162,37 @@ const momoWebhookHandler = async (req: Request, res: Response) => {
   }
 };
 
+// Xử lý kết quả thanh toán khi redirect về /order-status
+const handleOrderStatus = async (req: Request, res: Response) => {
+  try {
+    const { orderId } = req.query;
+
+    if (!orderId) {
+      res.status(400).json({ message: "Thiếu orderId" });
+      return;
+    }
+
+    const order = await Order.findById(orderId);
+    if (!order) {
+      res.status(404).json({ message: "Không thấy đơn hàng" });
+      return;
+    }
+
+    const statusMessage =
+      order.status === "paid"
+        ? "Thanh toán thành công!"
+        : "Thanh toán thất bại hoặc đang chờ xử lý.";
+
+    res.json({ message: statusMessage, order });
+  } catch (error) {
+    console.error("Lỗi lấy trạng thái thanh toán:", error);
+    res.status(500).json({ message: "Lỗi lấy trạng thái thanh toán" });
+  }
+};
+
 export default {
   getMyOrders,
   createCheckoutSession,
   momoWebhookHandler,
+  handleOrderStatus,
 };
